@@ -4,6 +4,7 @@ import os
 import sys
 from pathlib import Path
 
+from prometheus_client import start_http_server
 from sqlalchemy import select
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -39,6 +40,11 @@ async def main() -> None:
     async with SessionLocal() as session:
         await seed_sources(session)
         await session.commit()
+
+    # The worker is its own process, so it serves its own /metrics for Prometheus.
+    if settings.worker_metrics_port:
+        start_http_server(settings.worker_metrics_port)
+        log.info("metrics on :%s", settings.worker_metrics_port)
 
     interval = int(os.getenv("WORKER_POLL_SECONDS", settings.worker_poll_seconds))
     while True:
