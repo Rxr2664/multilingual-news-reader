@@ -63,19 +63,38 @@ def lemmatize(text: str, language: str):
     return processed
 
 
-async def extract_body(url: str) -> str | None:
-    async with httpx.AsyncClient(timeout=20.0, follow_redirects=True, headers=HEADERS) as client:
-        try:
-            res = await client.get(url)
-            res.raise_for_status()
-        except httpx.HTTPError as exc:
-            log.info("fetch failed %s: %s", url, exc)
-            return None
+async def fetch_feed(client: httpx.AsyncClient, url: str):
+    res = await client.get(url)
+    res.raise_for_status()
+    return feedparser.parse(
+        res.content,
+        response_headers={
+            "content-type": res.headers.get("content-type", ""),
+            # Base for relative links, as when feedparser fetched the URL itself.
+            "content-location": str(res.url),
+        },
+    )
+
+
+async def extract_body(client: httpx.AsyncClient, url: str) -> str | None:
+    try:
+        res = await client.get(url)
+        res.raise_for_status()
+    except httpx.HTTPError as exc:
+        log.info("fetch failed %s: %s", url, exc)
+        return None
     return trafilatura.extract(res.text) or None
 
 
 async def ingest_source(session: AsyncSession, source: Source, max_items: int = 15) -> int:
-    parsed = feedparser.parse(source.feed_url)
+    async with httpx.AsyncClient(timeout=20.0, follow_redirects=True, headers=HEADERS) as client:
+        return await _ingest_feed(session, client, source, max_items)
+
+
+async def _ingest_feed(
+    session: AsyncSession, client: httpx.AsyncClient, source: Source, max_items: int
+) -> int:
+    parsed = await fetch_feed(client, source.feed_url)
     ingested = 0
     r = await get_redis()
     for entry in parsed.entries[:max_items]:
@@ -85,7 +104,7 @@ async def ingest_source(session: AsyncSession, source: Source, max_items: int = 
         exists = await session.execute(select(Article.id).where(Article.url == url))
         if exists.scalar_one_or_none():
             continue
-        body = await extract_body(url)
+        body = await extract_body(client, url)
         if not body or len(body) < 400:
             summary = entry.get("summary") or entry.get("description") or ""
             body = trafilatura.extract(summary) or summary
