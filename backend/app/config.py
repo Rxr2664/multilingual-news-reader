@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     frontend_url: str = "http://localhost:3000"
     demo_login_enabled: bool = True
     worker_poll_seconds: int = 900
+    worker_metrics_port: int = 9101
     lemma_cache_ttl: int = 60 * 60 * 24 * 30
     score_cache_ttl: int = 60 * 60 * 24
     bulk_invalidation_threshold: int = 50

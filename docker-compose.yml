@@ -49,6 +49,8 @@ services:
       REDIS_URL: redis://redis:6379/0
       WORKER_POLL_SECONDS: "900"
     command: ["python", "-m", "worker.main"]
+    expose:
+      - "9101"
     depends_on:
       postgres:
         condition: service_healthy
