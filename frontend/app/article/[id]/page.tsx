@@ -4,12 +4,19 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Shell from "@/components/Shell";
 import TokenReader from "@/components/TokenReader";
-import { ArticleDetail, api } from "@/lib/api";
+import { ArticleDetail, TokenSpan, api } from "@/lib/api";
+
+function setLemmaUnknown(tokens: TokenSpan[], lemma: string, unknown: boolean): TokenSpan[] {
+  return tokens.map((t) =>
+    t.lemma === lemma && !t.is_entity && !t.is_punct ? { ...t, unknown } : t
+  );
+}
 
 export default function ArticlePage() {
   const params = useParams<{ id: string }>();
   const [article, setArticle] = useState<ArticleDetail | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   async function load() {
     const data = await api<ArticleDetail>(`/articles/${params.id}`);
@@ -20,26 +27,30 @@ export default function ArticlePage() {
     load().catch(console.error);
   }, [params.id]);
 
-  async function know(lemma: string) {
+  async function mark(lemma: string, unknown: boolean) {
     if (!article) return;
-    setArticle({
-      ...article,
-      tokens: article.tokens.map((t) => (t.lemma === lemma ? { ...t, unknown: false } : t)),
-    });
+    const previous = article.tokens;
+    setArticle((cur) => cur && { ...cur, tokens: setLemmaUnknown(cur.tokens, lemma, unknown) });
     setSelected(null);
-    await api("/vocab/know", { method: "POST", body: JSON.stringify({ lemma }) });
-  }
-
-  async function unknown(lemma: string) {
-    if (!article) return;
-    setArticle({
-      ...article,
-      tokens: article.tokens.map((t) =>
-        t.lemma === lemma && !t.is_entity && !t.is_punct ? { ...t, unknown: true } : t
-      ),
-    });
-    setSelected(null);
-    await api("/vocab/unknown", { method: "POST", body: JSON.stringify({ lemma }) });
+    setError(null);
+    try {
+      await api(unknown ? "/vocab/unknown" : "/vocab/know", {
+        method: "POST",
+        body: JSON.stringify({ lemma }),
+      });
+    } catch {
+      // Put back only this lemma's tokens, so other words marked meanwhile keep their state.
+      setArticle(
+        (cur) =>
+          cur && {
+            ...cur,
+            tokens: cur.tokens.map((t, i) =>
+              t.lemma === lemma ? { ...t, unknown: previous[i].unknown } : t
+            ),
+          }
+      );
+      setError(`Couldn't save "${lemma}". Please try again.`);
+    }
   }
 
   if (!article) return <Shell><p className="muted">Loading article…</p></Shell>;
@@ -54,12 +65,13 @@ export default function ArticlePage() {
           </a>
         </p>
         <h1>{article.title}</h1>
+        {error && <p className="error">{error}</p>}
         <TokenReader
           tokens={article.tokens}
           selected={selected}
           onSelect={setSelected}
-          onKnow={know}
-          onUnknown={unknown}
+          onKnow={(lemma) => mark(lemma, false)}
+          onUnknown={(lemma) => mark(lemma, true)}
         />
       </article>
     </Shell>
