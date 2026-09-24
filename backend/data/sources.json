@@ -1,0 +1,22 @@
+[
+  {"name": "Le Monde", "feed_url": "https://www.lemonde.fr/rss/une.xml", "country": "FR", "language": "fr"},
+  {"name": "Le Figaro", "feed_url": "https://www.lefigaro.fr/rss/figaro_actualites.xml", "country": "FR", "language": "fr"},
+  {"name": "Libération", "feed_url": "https://www.liberation.fr/arc/outboundfeeds/rss/?outputType=xml", "country": "FR", "language": "fr"},
+  {"name": "France 24", "feed_url": "https://www.france24.com/fr/rss", "country": "FR", "language": "fr"},
+  {"name": "France Info", "feed_url": "https://www.francetvinfo.fr/titres.rss", "country": "FR", "language": "fr"},
+  {"name": "El País", "feed_url": "https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/portada", "country": "ES", "language": "es"},
+  {"name": "El Mundo", "feed_url": "https://e00-elmundo.uecdn.es/elmundo/rss/portada.xml", "country": "ES", "language": "es"},
+  {"name": "ABC", "feed_url": "https://www.abc.es/rss/feeds/abcPortada.xml", "country": "ES", "language": "es"},
+  {"name": "RTVE", "feed_url": "https://www.rtve.es/api/noticias.rss", "country": "ES", "language": "es"},
+  {"name": "20 minutos", "feed_url": "https://www.20minutos.es/rss/", "country": "ES", "language": "es"},
+  {"name": "Spiegel", "feed_url": "https://www.spiegel.de/schlagzeilen/index.rss", "country": "DE", "language": "de"},
+  {"name": "Die Zeit", "feed_url": "https://newsfeed.zeit.de/index", "country": "DE", "language": "de"},
+  {"name": "DW", "feed_url": "https://rss.dw.com/rdf/rss-de-all", "country": "DE", "language": "de"},
+  {"name": "Tagesschau", "feed_url": "https://www.tagesschau.de/xml/rss2/", "country": "DE", "language": "de"},
+  {"name": "FAZ", "feed_url": "https://www.faz.net/rss/aktuell/", "country": "DE", "language": "de"},
+  {"name": "La Repubblica", "feed_url": "https://www.repubblica.it/rss/homepage/rss2.0.xml", "country": "IT", "language": "it"},
+  {"name": "Corriere della Sera", "feed_url": "https://www.corriere.it/rss/homepage.xml", "country": "IT", "language": "it"},
+  {"name": "ANSA", "feed_url": "https://www.ansa.it/sito/ansait_rss.xml", "country": "IT", "language": "it"},
+  {"name": "Il Sole 24 Ore", "feed_url": "https://www.ilsole24ore.com/rss/italia.xml", "country": "IT", "language": "it"},
+  {"name": "La Stampa", "feed_url": "https://www.lastampa.it/rss/home.xml", "country": "IT", "language": "it"}
+]
