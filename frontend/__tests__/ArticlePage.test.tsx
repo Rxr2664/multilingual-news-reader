@@ -62,6 +62,20 @@ test("a word stays known when saving succeeds", async () => {
   expect(screen.queryByText(/Couldn't save/)).toBeNull();
 });
 
+test("the unknown percentage is refreshed after a save", async () => {
+  let loads = 0;
+  mockedApi.mockImplementation(async (path: string) => {
+    if (path === "/articles/1") return loads++ === 0 ? article : { ...article, unknown_pct: 25 };
+    return {};
+  });
+  render(<ArticlePage />);
+  expect(await screen.findByText(/· 50% unknown/)).toBeInTheDocument();
+
+  await markKnown("Malgré");
+
+  expect(await screen.findByText(/· 25% unknown/)).toBeInTheDocument();
+});
+
 test("a word is rolled back when saving fails", async () => {
   mockedApi.mockImplementation(async (path: string) => {
     if (path === "/articles/1") return article;
@@ -74,4 +88,6 @@ test("a word is rolled back when saving fails", async () => {
   expect(await screen.findByText(/Couldn't save "malgré"/)).toBeInTheDocument();
   expect(screen.getByText("Malgré").className).toContain("unknown");
   expect(screen.getByText("pluie").className).toContain("unknown");
+  // Initial load and the failed save only; no refresh after a failure.
+  expect(mockedApi).toHaveBeenCalledTimes(2);
 });

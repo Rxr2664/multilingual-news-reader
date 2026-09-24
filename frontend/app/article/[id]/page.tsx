@@ -50,6 +50,15 @@ export default function ArticlePage() {
           }
       );
       setError(`Couldn't save "${lemma}". Please try again.`);
+      return;
+    }
+    // The server owns the percentage (it only counts content lemmas), so ask it rather
+    // than recomputing from the tokens. Tokens are left alone; they're already current.
+    try {
+      const fresh = await api<ArticleDetail>(`/articles/${params.id}`);
+      setArticle((cur) => cur && { ...cur, unknown_pct: fresh.unknown_pct });
+    } catch {
+      // Keep the old figure; it's corrected on the next load.
     }
   }
 
