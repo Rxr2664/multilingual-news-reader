@@ -2,12 +2,13 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 
 from app.config import settings
 from app.db import Base, engine, SessionLocal
 from app.models import Source  # noqa: F401
 from app.redis_client import close_redis
-from app.routers import auth, health, vocab
+from app.routers import articles, auth, health, vocab
 from app.seed import seed_sources
 
 
@@ -15,6 +16,12 @@ from app.seed import seed_sources
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        await conn.execute(
+            text(
+                "CREATE INDEX IF NOT EXISTS ix_articles_source_published_desc "
+                "ON articles (source_id, published_at DESC)"
+            )
+        )
     async with SessionLocal() as session:
         await seed_sources(session)
         await session.commit()
@@ -33,4 +40,5 @@ app.add_middleware(
 )
 app.include_router(health.router)
 app.include_router(auth.router)
+app.include_router(articles.router)
 app.include_router(vocab.router)
