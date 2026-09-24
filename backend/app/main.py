@@ -7,7 +7,7 @@ from app.config import settings
 from app.db import Base, engine, SessionLocal
 from app.models import Source  # noqa: F401
 from app.redis_client import close_redis
-from app.routers import auth, health
+from app.routers import auth, health, vocab
 from app.seed import seed_sources
 
 
@@ -33,3 +33,4 @@ app.add_middleware(
 )
 app.include_router(health.router)
 app.include_router(auth.router)
+app.include_router(vocab.router)
