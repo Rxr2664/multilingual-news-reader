@@ -15,6 +15,14 @@ from app.redis_client import close_redis, get_redis
 TEST_DB = settings.database_url
 
 
+@pytest_asyncio.fixture(autouse=True)
+async def reset_redis_client():
+    # The shared Redis client is bound to the event loop it was created on,
+    # and every test gets a fresh loop, so drop it after each test.
+    yield
+    await close_redis()
+
+
 @pytest_asyncio.fixture
 async def db_engine():
     engine = create_async_engine(TEST_DB, pool_pre_ping=True)
